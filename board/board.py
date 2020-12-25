@@ -1,4 +1,4 @@
-from typing import List, NewType, Optional
+from typing import List, NewType, Optional, Tuple
 
 
 SquareParity = NewType('SquareKind', int)
@@ -34,8 +34,9 @@ class Board:
     and is red otherwise. A horizontal domino is blue if its left square is black, and is green otherwise.
     The kind of domino that a square belongs to is defined as the square's color. If it's unfilled, the square is gray.
 
-    Every square has an arrow direction, which indicates where the corresponding domino should go when the board
-    is expanded. The arrows are generated when the board is created, and are guaranteed to be valid according to color.
+    Every non-gray has an arrow direction, which indicates where the corresponding domino should go when the board is
+    expanded. The arrows are guaranteed to be valid according to domino color, but may face each other. New directions
+    are generated when fill_holes() is called.
     """
 
     def __init__(self, width):
@@ -48,12 +49,19 @@ class Board:
     def get_square_color(self, x, y) -> SquareColor:
         pass
 
-    def get_square_neighbor(self, x, y) -> Optional[(int, int)]:
+    def get_square_neighbor(self, x, y) -> Optional[Tuple[int, int]]:
         """Returns None if the square is gray."""
         pass
 
-    def get_arrow_direction(self, x, y) -> ArrowDirection:
+    def get_arrow_direction(self, x, y) -> Optional[ArrowDirection]:
+        """Returns None if the square is gray."""
         pass
 
-    def regenerate_arrows(self):
+    def fill_holes(self):
+        """Fills all 2x2 areas of gray squares with new dominoes and gives them arrow directions."""
+        pass
+
+    def next_board(self) -> 'Board':
+        """Performs necessary movement and deletion of dominoes according to current data and returns a new
+        instance of Board. Its fill_holes() will not be called by this method."""
         pass
