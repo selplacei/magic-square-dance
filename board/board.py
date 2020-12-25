@@ -1,12 +1,12 @@
 from typing import List, NewType, Optional
 
 
-SquareKind = NewType('SquareKind', int)
+SquareParity = NewType('SquareKind', int)
 SquareColor = NewType('SquareColor', int)
 ArrowDirection = NewType('ArrowDirection', int)
 
-BLACK = SquareKind(0)
-WHITE = SquareKind(1)
+BLACK = SquareParity(0)
+WHITE = SquareParity(1)
 
 GRAY = SquareColor(0)
 RED = SquareColor(1)
@@ -27,7 +27,7 @@ class Board:
     The board is represented as a 2-dimensional list whose rows represent rows of the board, from top to bottom.
     The first row has width 2. X increases to the right, and Y increases downwards. All rows start at X = 0.
 
-    Every square is either black or white; this is defined as the square's kind.
+    Every square is either black or white; this is defined as the square's parity.
     The board is in a checkerboard pattern: a square is black if its X coordinate is even.
 
     Every domino is one of red, yellow, green, or blue. A vertical domino is yellow if its top square is black,
@@ -42,7 +42,7 @@ class Board:
         self.data: List[List[SquareColor]] = []
         self.arrows: List[List[ArrowDirection]] = []  # To avoid redundancy, only stores values of black squares
 
-    def get_square_kind(self, x, y) -> SquareKind:
+    def get_square_parity(self, x, y) -> SquareParity:
         pass
 
     def get_square_color(self, x, y) -> SquareColor:
