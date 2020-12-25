@@ -1,4 +1,4 @@
-from typing import List, NewType, Optional, Tuple
+from typing import Dict, List, NewType, Optional, Tuple
 
 
 SquareParity = NewType('SquareKind', int)
@@ -8,6 +8,7 @@ ArrowDirection = NewType('ArrowDirection', int)
 BLACK = SquareParity(0)
 WHITE = SquareParity(1)
 
+NO_COLOR = SquareColor(-1)
 GRAY = SquareColor(0)
 RED = SquareColor(1)
 YELLOW = SquareColor(2)
@@ -24,38 +25,61 @@ class Board:
     """
     Data representation of an Aztec Board.
 
-    The board is represented as a 2-dimensional list whose rows represent rows of the board, from top to bottom.
-    The first row has width 2. X increases to the right, and Y increases downwards. All rows start at X = 0.
+    The board, stored in the `data` field, is as a list of dicts, where each dict represents two rows and each element
+    of a dict is the X coordinate of a valid black square mapped to a tuple of the square's color and arrow direction.
+    The first dict corresponds to Y coordinates 0 and 1. Y increases downwards.
 
-    Every square is either black or white; this is defined as the square's parity.
-    The board is in a checkerboard pattern: a square is black if its X coordinate is even.
+    Every square has a parity of either black or white. A square is black if the sum of its X and Y coordinates is even;
+    in other words, there is a checkerboard pattern starting with a black square at (0, 0). White squares are not stored
+    to avoid redundancy, but it's valid to use the coordinates of a white square anywhere that coordinates are expected.
 
-    Every domino is one of red, yellow, green, or blue. A vertical domino is yellow if its top square is black,
-    and is red otherwise. A horizontal domino is blue if its left square is black, and is green otherwise.
-    The kind of domino that a square belongs to is defined as the square's color. If it's unfilled, the square is gray.
+    Every square has a color, which it shares with the other part of its domino if it has one.
+    If the coordinates are outside of the board, its color is NO_COLOR.
+    If a valid square is not part of a domino, its color is GRAY.
+    If the domino is vertical and the top square is black, its color is YELLOW; otherwise, it's RED.
+    If the domino is horizontal and the left square is black, its color is BLUE; otherwise, it's GREEN.
 
-    Every non-gray has an arrow direction, which indicates where the corresponding domino should go when the board is
-    expanded. The arrows are guaranteed to be valid according to domino color, but may face each other. New directions
-    are generated when fill_holes() is called.
+    Every valid non-gray square has an arrow direction, which indicates where the domino moves for the next board.
     """
-
     def __init__(self, width):
-        self.data: List[List[SquareColor]] = []
-        self.arrows: List[List[ArrowDirection]] = []  # To avoid redundancy, only stores values of black squares
+        self.data: List[Dict[int, Tuple[SquareColor, Optional[ArrowDirection]]]] = []
 
-    def get_square_parity(self, x, y) -> SquareParity:
-        pass
+    @staticmethod
+    def get_square_parity(x, y) -> SquareParity:
+        return (x + y) % 2  # 0 = BLACK, 1 = WHITE
 
     def get_square_color(self, x, y) -> SquareColor:
-        pass
+        if not (0 <= y // 2 < len(self.data) and x in self.data[y // 2]):
+            return NO_COLOR
+        elif self.get_square_parity(x, y) == BLACK:
+            return self.data[y // 2][x][0]
+        else:
+            neighbor = self.get_square_neighbor(x, y)
+            return self.data[neighbor[1] // 2][neighbor[0]][0]
 
     def get_square_neighbor(self, x, y) -> Optional[Tuple[int, int]]:
-        """Returns None if the square is gray."""
-        pass
+        """Returns None if the square is gray or invalid. Always returns valid coordinates otherwise."""
+        color = self.get_square_color(x, y)
+        parity = self.get_square_parity(x, y)
+        if color == RED:
+            return x, y + (1 if parity == WHITE else -1)
+        elif color == YELLOW:
+            return x, y + (1 if parity == BLACK else -1)
+        elif color == GREEN:
+            return x + (1 if parity == WHITE else -1), y
+        elif color == BLUE:
+            return x + (1 if parity == BLACK else -1), y
+        return None
 
     def get_arrow_direction(self, x, y) -> Optional[ArrowDirection]:
-        """Returns None if the square is gray."""
-        pass
+        """Returns None if the square is gray or invalid."""
+        if self.get_square_color(x, y) in {NO_COLOR, GRAY}:
+            return None
+        elif self.get_square_parity(x, y) == BLACK:
+            return self.data[y // 2][x][1]
+        else:
+            neighbor = self.get_square_neighbor(x, y)
+            return self.data[neighbor[1] // 2][neighbor[0]][1]
 
     def fill_holes(self):
         """Fills all 2x2 areas of gray squares with new dominoes and gives them arrow directions."""
@@ -63,5 +87,5 @@ class Board:
 
     def next_board(self) -> 'Board':
         """Performs necessary movement and deletion of dominoes according to current data and returns a new
-        instance of Board. Its fill_holes() will not be called by this method."""
+        instance of Board. ill_holes() will not be called by this method."""
         pass
