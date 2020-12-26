@@ -49,9 +49,12 @@ class AztecDiamondRenderer(QWidget):
         board_radius = len(self.board.data) // 2
         for y in range(-board_radius, board_radius):
             for x in range(-board_radius, board_radius):
-                painter.setBrush(QBrush(
-                    self.square_colors[self.board.get_square_parity(x, y), self.board.get_square_color(x, y)]
-                ))
+                if x == 0 and y == 0:
+                    painter.setBrush(QBrush(QColor(255, 255, 255)))
+                else:
+                    painter.setBrush(QBrush(
+                        self.square_colors[self.board.get_square_parity(x, y), self.board.get_square_color(x, y)]
+                    ))
                 painter.drawRect(QRectF(
                     (x + board_radius) * self.square_size, (y + board_radius) * self.square_size,
                     self.square_size, self.square_size
