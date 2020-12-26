@@ -68,10 +68,15 @@ class Board:
                 return self.get_square_color(*neighbor)
             return GRAY
         else:
+            edge_orientation = 1 if len(self.data) / 2 % 2 == 0 else -1
             neighbor = self.get_square_neighbor(x, y)
             if neighbor:
                 return self.get_square_color(*neighbor)
-            elif all(self.get_square_color(x + p, y + q) != NO_COLOR for p, q in ((0, -1), (0, 1), (-1, 0), (1, 0))):
+            elif (
+                self.get_square_color(x + edge_orientation, y) != NO_COLOR and self.get_square_color(x, y+1) != NO_COLOR
+            ) or (
+                self.get_square_color(x, y-1) != NO_COLOR and self.get_square_color(x - edge_orientation, y) != NO_COLOR
+            ):
                 return GRAY
             return NO_COLOR
 
