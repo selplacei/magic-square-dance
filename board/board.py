@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from math import ceil, floor
 from typing import Dict, List, NewType, Optional, Tuple
 
@@ -40,7 +41,7 @@ class Board:
         if init_data:
             b = (height - 1) / 2
             for i in range(height):
-                self.data.append({})
+                self.data.append(OrderedDict())
                 d = floor(-abs(i - b) + b)
                 for j in range(floor(b) - d, ceil(b) + d + 1):
                     self.data[i][j] = GRAY
@@ -60,23 +61,53 @@ class Board:
 
     def get_square_neighbor(self, x, y) -> Optional[Tuple[int, int]]:
         """Returns None if the square is gray or invalid. Always returns valid coordinates otherwise."""
-        color = self.get_square_color(x, y)
         parity = self.get_square_parity(x, y)
-        if color == RED:
-            return x, y + (1 if parity == WHITE else -1)
-        elif color == YELLOW:
-            return x, y + (1 if parity == BLACK else -1)
-        elif color == GREEN:
-            return x + (1 if parity == WHITE else -1), y
-        elif color == BLUE:
-            return x + (1 if parity == BLACK else -1), y
-        return None
+        if parity == BLACK:
+            color = self.get_square_color(x, y)
+            if color == RED:
+                return x, y + (1 if parity == WHITE else -1)
+            elif color == YELLOW:
+                return x, y + (1 if parity == BLACK else -1)
+            elif color == GREEN:
+                return x + (1 if parity == WHITE else -1), y
+            elif color == BLUE:
+                return x + (1 if parity == BLACK else -1), y
+            return None
+        else:
+            for x2, y2, target_color in ((x, y - 1, YELLOW), (x, y + 1, RED), (x - 1, y, BLUE), (x + 1, y, GREEN)):
+                if self.get_square_color(x2, y2) == target_color:
+                    return x2, y2
+            return None
 
-    def fill_holes(self):
-        """Fills all 2x2 areas of gray squares with new dominoes."""
+    def get_holes(self) -> List[Tuple[int, int]]:
+        """Returns all 2x2 areas of gray squares as the self.data indices of their top black square, X first."""
+        # A 2x2 hole is represented in self.data by either two consecutive gray squares within a dict
+        # or by two gray squares in two consecutive dicts whose indices (key ints) are consecutive, and the index
+        # corresponding to the upper row is odd.
+        corners = []
+        current_row = 0
+        unvisited = [list(filter(lambda k: self.data[i][k] == GRAY, r.keys())) for i, r in enumerate(self.data)]
+        while unvisited:
+            for x in list(filter(lambda n: n % 2 == 0, unvisited[0])):
+                other = x - 1 if x - 1 in unvisited[0] else x + 1
+                corners.append((x, current_row))
+                unvisited[0].remove(x)
+                unvisited[0].remove(other)
+            while unvisited[0]:
+                # Elements of unvisited[0] are guaranteed to be odd at this point
+                x = unvisited[0].pop(0)
+                other = x - 1 if x - 1 in unvisited[1] else x + 1
+                corners.append((x, current_row))
+                unvisited[1].remove(other)
+            unvisited.pop(0)
+            current_row += 1
+        return corners
+
+    def fill_holes(self, holes: List[Tuple[int, int]]):
+        """Fills holes at coordinates returned by ``get_holes()`` with a random arrangement of dominoes."""
         pass
 
     def next_board(self) -> 'Board':
         """Performs necessary movement and deletion of dominoes according to current data and returns a new
-        instance of Board. fill_holes() will not be called by this method."""
+        instance of Board. ``fill_holes()`` will not be called by this method."""
         pass
