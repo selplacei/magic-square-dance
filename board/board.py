@@ -5,7 +5,6 @@ from typing import Dict, List, NewType, Optional, Tuple
 
 SquareParity = NewType('SquareKind', int)
 SquareColor = NewType('SquareColor', int)
-ArrowDirection = NewType('ArrowDirection', int)
 
 BLACK = SquareParity(0)
 WHITE = SquareParity(1)
@@ -22,7 +21,7 @@ class Board:
     """
     Data representation of an Aztec Diamond board.
 
-    The board, stored in the `data` field, is as a list of dicts, where each dict represents two rows and each element
+    The board, stored in the ``data`` field, is as a list of dicts, where each dict represents two rows and each element
     of a dict is the X coordinate of a valid black square mapped to a tuple of the square's color and arrow direction.
     The first dict corresponds to Y coordinates 0 and 1. Y increases downwards.
 
@@ -31,8 +30,8 @@ class Board:
     to avoid redundancy, but it's valid to use the coordinates of a white square anywhere that coordinates are expected.
 
     Every square has a color, which it shares with the other part of its domino if it has one.
-    If the coordinates are outside of the board, its color is NO_COLOR.
-    If a valid square is not part of a domino, its color is GRAY.
+    If the coordinates are outside of the board, the reported color is NO_COLOR.
+    If a square is not part of a domino, its color is GRAY.
     If the domino is vertical and the top square is black, its color is YELLOW; otherwise, it's RED.
     If the domino is horizontal and the left square is black, its color is BLUE; otherwise, it's GREEN.
     """
@@ -82,7 +81,7 @@ class Board:
     def get_holes(self) -> List[Tuple[int, int]]:
         """Returns all 2x2 areas of gray squares as the self.data indices of their top black square, X first."""
         # A 2x2 hole is represented in self.data by either two consecutive gray squares within a dict
-        # or by two gray squares in two consecutive dicts whose indices (key ints) are consecutive, and the index
+        # or by two gray squares in consecutive dicts whose indices are consecutive, and the index
         # corresponding to the upper row is odd.
         corners = []
         current_row = 0
@@ -104,7 +103,7 @@ class Board:
         return corners
 
     def fill_holes(self, holes: List[Tuple[int, int]]):
-        """Fills holes at coordinates returned by ``get_holes()`` with a random arrangement of dominoes."""
+        """Fills holes at indices returned by ``get_holes()`` with a random arrangement of dominoes."""
         pass
 
     def next_board(self) -> 'Board':
