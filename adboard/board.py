@@ -36,27 +36,50 @@ class Board:
     If the domino is horizontal and the left square is black, its color is BLUE; otherwise, it's GREEN.
     """
     def __init__(self, height, init_data=True):
+        if height % 2 != 0 or height <= 1:
+            raise ValueError('The height of an Aztec Diamond board must be an even number greater than 1.')
         self.data: List[Dict[int, SquareColor]] = []
         if init_data:
-            b = (height - 1) / 2
-            for i in range(height):
-                self.data.append(OrderedDict())
-                d = floor(-abs(i - b) + b)
-                for j in range(floor(b) - d, ceil(b) + d + 1):
-                    self.data[i][j] = GRAY
+            if height == 2:
+                self.data = [{0: GRAY, 1: GRAY}, {0: GRAY, 1: GRAY}]
+            else:
+                rows = []
+                offset = height // 2 - 1
+                while len(rows) <= height // 2:
+                    rows.append(OrderedDict())
+                    for i in range(offset, height - offset + (3 if len(rows) > height // 4 else 1)):
+                        if len(rows) < height // 4 + 1:
+                            rows[-1][i] = BLUE
+                        elif len(rows) > height // 4 + 1:
+                            rows[-1][i] = GREEN
+                        elif i % 2 == 0:
+                            rows[-1][i] = BLUE
+                        else:
+                            rows[-1][i] = GREEN
+                    if len(rows) < height // 4:
+                        offset -= 2
+                    elif len(rows) == height // 4:
+                        offset -= 1
+                    else:
+                        offset += 2
+                self.data = rows
 
     @staticmethod
     def get_square_parity(x, y) -> SquareParity:
         return (x + y) % 2  # 0 = BLACK, 1 = WHITE
 
     def get_square_color(self, x, y) -> SquareColor:
-        if not (0 <= y // 2 < len(self.data) and x in self.data[y // 2]):
+        if self.get_square_parity(x, y) == BLACK:
+            if 0 <= y // 2 < len(self.data) and x in self.data[y // 2]:
+                return self.data[y // 2][x]
             return NO_COLOR
-        elif self.get_square_parity(x, y) == BLACK:
-            return self.data[y // 2][x]
         else:
             neighbor = self.get_square_neighbor(x, y)
-            return self.data[neighbor[1] // 2][neighbor[0]]
+            if neighbor:
+                return self.get_square_color(*neighbor)
+            elif all(self.get_square_color(x + x2, y + y2) != NO_COLOR for x2, y2 in ((0, -1), (0, 1), (-1, 0), (1, 0))):
+                return GRAY
+            return NO_COLOR
 
     def get_square_neighbor(self, x, y) -> Optional[Tuple[int, int]]:
         """Returns None if the square is gray or invalid. Always returns valid coordinates otherwise."""
