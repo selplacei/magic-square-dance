@@ -60,8 +60,9 @@ class Board:
         offset = -1
         for i in range(-height // 2, height // 2):
             data[i] = OrderedDict()
-            for j in range(offset, offset * -1, 1):
-                data[i][j] = colors[0] if i < 0 else colors[1]
+            for j in range(offset, offset * -1):
+                if (j + i) % 2 == 0:
+                    data[i][j] = colors[0] if i < 0 else colors[1]
             if len(data) < height / 2:
                 offset -= 1
             elif len(data) > height / 2:
@@ -122,23 +123,25 @@ class Board:
             return None
 
     def get_holes(self) -> List[Tuple[int, int]]:
-        """Returns all 2x2 areas of gray squares as coordinates of their top left corner. Assumes a valid board."""
+        """Returns all 2x2 areas of gray squares as coordinates of their top left corner. Assumes a valid board.
+        Return values for invalid boards are undefined."""
         # In self.data, a hole corresponds to two gray squares that are immediately diagonal of each other.
         corners = []
         current_row = 0
-        unvisited = [
-            list(filter(lambda k: self.data[i][k] == GRAY, r.keys())) for i, r in enumerate(self.data.values())
-        ]
+        rows, unvisited = map(list, zip(*(
+            (i, list(filter(lambda k: self.data[i][k] == GRAY, r.keys()))) for i, r in self.data.items()
+        )))
         while unvisited:
             while unvisited[0]:
                 if unvisited[0][0] - 1 in unvisited[1]:
-                    corners.append((unvisited[0][0] - 1, current_row))
+                    corners.append((unvisited[0][0] - 1, rows[current_row]))
                     unvisited[1].remove(unvisited[0][0] - 1)
                 else:
-                    corners.append((unvisited[0][0], current_row))
+                    corners.append((unvisited[0][0], rows[current_row]))
                     unvisited[1].remove(unvisited[0][0] + 1)
                 unvisited[0].pop(0)
             unvisited.pop(0)
+            current_row += 1
         return corners
 
     def fill_holes(self, holes: List[Tuple[int, int]]):
@@ -150,10 +153,10 @@ class Board:
         ``fill_holes()`` will not be called by this method."""
         new_data = self.generate_data(len(self.data) + 2)
         color_delta = {
-            RED: (1, 0),
-            YELLOW: (-1, 0),
-            BLUE: (0, -1),
-            GREEN: (0, 1),
+            RED: (1, -self.polarity),
+            YELLOW: (-1, self.polarity),
+            BLUE: (self.polarity, -1),
+            GREEN: (-self.polarity, 1),
             GRAY: (0, 0)
         }
         for y, row in self.data.items():
