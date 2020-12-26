@@ -26,7 +26,7 @@ class AztecDiamondRenderer(QWidget):
         super().__init__(parent=parent)
         self.board = None
         # self.board = board_data or board.Board(20)
-        self.board_size = 2
+        self.board_size = 10
         self.change_board()
 
     def change_board(self):

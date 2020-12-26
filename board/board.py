@@ -3,8 +3,9 @@ from math import ceil, floor
 from typing import Dict, List, NewType, Optional, Tuple
 
 
-SquareParity = NewType('SquareKind', int)
+SquareParity = NewType('SquareParity', int)
 SquareColor = NewType('SquareColor', int)
+FillStrategy = NewType('FillStrategy', int)
 
 BLACK = SquareParity(0)
 WHITE = SquareParity(1)
@@ -15,6 +16,10 @@ RED = SquareColor(1)
 YELLOW = SquareColor(2)
 GREEN = SquareColor(3)
 BLUE = SquareColor(4)
+
+ALL_GRAY = FillStrategy(0)
+HORIZONTAL = FillStrategy(1)
+VERTICAL = FillStrategy(2)
 
 
 class Board:
@@ -37,18 +42,30 @@ class Board:
     def __init__(self, height, init_data=True):
         if height % 2 != 0 or height <= 1:
             raise ValueError('The height of an Aztec Diamond board must be an even number greater than 1.')
-        self.data: Dict[int, Dict[int, SquareColor]] = OrderedDict()
+        self.data: Dict[int, Dict[int, SquareColor]]
         if init_data:
-            colors = (GREEN, BLUE) if height % 4 == 0 else (BLUE, GREEN)
-            offset = -1
-            for i in range(-height // 2, height // 2 + 1):
-                self.data[i] = OrderedDict()
-                for j in range(offset, offset * -1, 1):
-                    self.data[i][j] = colors[0] if i < 0 else colors[1]
-                if len(self.data) < height / 2:
-                    offset -= 1
-                elif len(self.data) > height / 2:
-                    offset += 1
+            self.data = self.generate_data(height, fill_strategy=HORIZONTAL)
+        else:
+            self.data = OrderedDict()
+
+    @staticmethod
+    def generate_data(height, fill_strategy=ALL_GRAY) -> Dict[int, Dict[int, SquareColor]]:
+        data = OrderedDict()
+        colors = {
+            ALL_GRAY: (GRAY, GRAY),
+            HORIZONTAL: (GREEN, BLUE) if height % 4 == 0 else (BLUE, GREEN),
+            VERTICAL: NotImplemented
+        }[fill_strategy]
+        offset = -1
+        for i in range(-height // 2, height // 2):
+            data[i] = OrderedDict()
+            for j in range(offset, offset * -1, 1):
+                data[i][j] = colors[0] if i < 0 else colors[1]
+            if len(data) < height / 2:
+                offset -= 1
+            elif len(data) > height / 2:
+                offset += 1
+        return data
 
     @staticmethod
     def get_square_parity(x, y) -> SquareParity:
@@ -103,7 +120,9 @@ class Board:
         # In self.data, a hole corresponds to two gray squares that are immediately diagonal of each other.
         corners = []
         current_row = 0
-        unvisited = [list(filter(lambda k: self.data[i][k] == GRAY, r.keys())) for i, r in enumerate(self.data)]
+        unvisited = [
+            list(filter(lambda k: self.data[i][k] == GRAY, r.keys())) for i, r in enumerate(self.data.values())
+        ]
         while unvisited:
             while unvisited[0]:
                 if unvisited[0][0] - 1 in unvisited[1]:
@@ -113,13 +132,14 @@ class Board:
                     corners.append((unvisited[0][0], current_row))
                     unvisited[1].remove(unvisited[0][0] + 1)
                 unvisited[0].pop(0)
+            unvisited.pop(0)
         return corners
 
     def fill_holes(self, holes: List[Tuple[int, int]]):
         """Fills holes at coordinates returned by ``get_holes()`` with a random arrangement of dominoes."""
         pass
 
-    def next_board(self) -> 'Board':
-        """Performs necessary movement and deletion of dominoes according to current data and returns a new
-        instance of Board. ``fill_holes()`` will not be called by this method."""
-        pass
+    def advance_magic(self):
+        """Performs necessary movement and deletion of dominoes according to current data and changes the board size.
+        ``fill_holes()`` will not be called by this method."""
+        new_data = self.generate_data(len(self.data) + 2)
