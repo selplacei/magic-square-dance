@@ -37,21 +37,18 @@ class Board:
     def __init__(self, height, init_data=True):
         if height % 2 != 0 or height <= 1:
             raise ValueError('The height of an Aztec Diamond board must be an even number greater than 1.')
-        self.data: List[Dict[int, SquareColor]] = []
+        self.data: Dict[int, Dict[int, SquareColor]] = OrderedDict()
         if init_data:
-            if height == 2:
-                self.data = [{0: GRAY, 1: GRAY}, {0: GRAY, 1: GRAY}]
-            else:
-                colors = (GREEN, BLUE) if height / 2 % 2 == 0 else (BLUE, GREEN)
-                offset = height // 2 - 1
-                for i in range(height):
-                    self.data.append(OrderedDict())
-                    for j in range(offset, height - offset, 1):
-                        self.data[i][j] = colors[0] if len(self.data) <= height / 2 else colors[1]
-                    if len(self.data) < height / 2:
-                        offset -= 1
-                    elif len(self.data) > height / 2:
-                        offset += 1
+            colors = (GREEN, BLUE) if height % 4 == 0 else (BLUE, GREEN)
+            offset = -1
+            for i in range(-height // 2, height // 2 + 1):
+                self.data[i] = OrderedDict()
+                for j in range(offset, offset * -1, 1):
+                    self.data[i][j] = colors[0] if i < 0 else colors[1]
+                if len(self.data) < height / 2:
+                    offset -= 1
+                elif len(self.data) > height / 2:
+                    offset += 1
 
     @staticmethod
     def get_square_parity(x, y) -> SquareParity:
@@ -59,7 +56,8 @@ class Board:
 
     def get_square_color(self, x, y) -> SquareColor:
         if self.get_square_parity(x, y) == BLACK:
-            if 0 <= y < len(self.data) and x in self.data[y]:
+            radius = len(self.data) // 2
+            if -radius <= y < radius and x in self.data[y]:
                 return self.data[y][x]
             return NO_COLOR
         elif len(self.data) == 2:
@@ -68,14 +66,14 @@ class Board:
                 return self.get_square_color(*neighbor)
             return GRAY
         else:
-            edge_orientation = 1 if len(self.data) / 2 % 2 == 0 else -1
+            orientation = 1 if (len(self.data) - 1) % 4 == 0 else -1
             neighbor = self.get_square_neighbor(x, y)
             if neighbor:
                 return self.get_square_color(*neighbor)
             elif (
-                self.get_square_color(x + edge_orientation, y) != NO_COLOR and self.get_square_color(x, y+1) != NO_COLOR
+                self.get_square_color(x + orientation, y) != NO_COLOR and self.get_square_color(x, y + 1) != NO_COLOR
             ) or (
-                self.get_square_color(x, y-1) != NO_COLOR and self.get_square_color(x - edge_orientation, y) != NO_COLOR
+                self.get_square_color(x, y - 1) != NO_COLOR and self.get_square_color(x - orientation, y) != NO_COLOR
             ):
                 return GRAY
             return NO_COLOR
@@ -86,13 +84,13 @@ class Board:
         if parity == BLACK:
             color = self.get_square_color(x, y)
             if color == RED:
-                return x, y + (1 if parity == WHITE else -1)
+                return x, y - 1
             elif color == YELLOW:
-                return x, y + (1 if parity == BLACK else -1)
+                return x, y + 1
             elif color == GREEN:
-                return x + (1 if parity == WHITE else -1), y
+                return x - 1, y
             elif color == BLUE:
-                return x + (1 if parity == BLACK else -1), y
+                return x + 1, y
             return None
         else:
             for x2, y2, target_color in ((x, y - 1, YELLOW), (x, y + 1, RED), (x - 1, y, BLUE), (x + 1, y, GREEN)):
