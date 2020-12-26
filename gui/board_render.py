@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QWidget
-from PySide2.QtCore import Qt, QRectF, QTimer
+from PySide2.QtCore import Qt, QRectF, QTimer, Signal, QSize
 from PySide2.QtGui import QPainter, QBrush, QPen, QColor
 
 import board
@@ -22,22 +22,28 @@ class AztecDiamondRenderer(QWidget):
         square_colors[board.BLACK, color] = QColor(*map(lambda n: max(0, n - 20), value))
         square_colors[board.WHITE, color] = QColor(*map(lambda n: min(255, n + 20), value))
 
+    boardChanged = Signal(QSize)
+
     def __init__(self, board_data=None, parent=None):
         super().__init__(parent=parent)
-        self.board = None
-        # self.board = board_data or board.Board(20)
-        self.board_size = 10
-        self.change_board()
+        self.board = board.Board(2)
+        self.square_size = 20
+        self.adjust_minimum_size()
+        self.boardChanged.emit(self.minimumSize())
 
-    def change_board(self):
-        self.board = board.Board(self.board_size)
+    def advance_magic(self):
+        self.board.advance_magic()
+        self.adjust_minimum_size()
+        self.boardChanged.emit(self.minimumSize())
         self.repaint()
-        self.board_size += 2
+
+    def adjust_minimum_size(self):
+        board_radius = len(self.board.data) // 2
+        self.setMinimumSize(board_radius * 2 * self.square_size, board_radius * 2 * self.square_size)
 
     def paintEvent(self, event):
         if not self.board:
             return
-        square_size = 20
         painter = QPainter(self)
         painter.setPen(Qt.NoPen)
         board_radius = len(self.board.data) // 2
@@ -47,5 +53,6 @@ class AztecDiamondRenderer(QWidget):
                     self.square_colors[self.board.get_square_parity(x, y), self.board.get_square_color(x, y)]
                 ))
                 painter.drawRect(QRectF(
-                    (x + board_radius) * square_size, (y + board_radius) * square_size, square_size, square_size
+                    (x + board_radius) * self.square_size, (y + board_radius) * self.square_size,
+                    self.square_size, self.square_size
                 ))

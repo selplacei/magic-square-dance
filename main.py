@@ -1,9 +1,9 @@
 import sys
 from PySide2.QtWidgets import QApplication
-import rendering
+import gui
 
 if __name__ == '__main__':
     app = QApplication()
-    renderer = rendering.AztecDiamondRenderer()
-    renderer.show()
+    window = gui.MainWindow()
+    window.show()
     sys.exit(app.exec_())
