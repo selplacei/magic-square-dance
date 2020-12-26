@@ -24,8 +24,7 @@ class AztecDiamondRenderer(QWidget):
 
     def __init__(self, board_data=None, parent=None):
         super().__init__(parent=parent)
-        self.board = board_data or board.Board(28)
-        print('\n'.join(map(str, self.board.data)))
+        self.board = board_data or board.Board(90)
 
     def paintEvent(self, event):
         square_size = 10

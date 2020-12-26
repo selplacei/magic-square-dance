@@ -42,11 +42,12 @@ class Board:
             if height == 2:
                 self.data = [{0: GRAY, 1: GRAY}, {0: GRAY, 1: GRAY}]
             else:
+                colors = (GREEN, BLUE) if height / 2 % 2 == 0 else (BLUE, GREEN)
                 offset = height // 2 - 1
                 for i in range(height):
                     self.data.append(OrderedDict())
                     for j in range(offset, height - offset, 1):
-                        self.data[i][j] = GREEN if i < height / 2 and height % 2 == 0 else BLUE
+                        self.data[i][j] = colors[0] if len(self.data) <= height / 2 else colors[1]
                     if len(self.data) < height / 2:
                         offset -= 1
                     elif len(self.data) > height / 2:
@@ -61,11 +62,16 @@ class Board:
             if 0 <= y < len(self.data) and x in self.data[y]:
                 return self.data[y][x]
             return NO_COLOR
+        elif len(self.data) == 2:
+            neighbor = self.get_square_neighbor(x, y)
+            if neighbor:
+                return self.get_square_color(*neighbor)
+            return GRAY
         else:
             neighbor = self.get_square_neighbor(x, y)
             if neighbor:
                 return self.get_square_color(*neighbor)
-            elif all(self.get_square_color(x + x2, y + y2) != NO_COLOR for x2, y2 in ((0, -1), (0, 1), (-1, 0), (1, 0))):
+            elif all(self.get_square_color(x + p, y + q) != NO_COLOR for p, q in ((0, -1), (0, 1), (-1, 0), (1, 0))):
                 return GRAY
             return NO_COLOR
 
@@ -90,31 +96,24 @@ class Board:
             return None
 
     def get_holes(self) -> List[Tuple[int, int]]:
-        """Returns all 2x2 areas of gray squares as the self.data indices of their top black square, X first."""
-        # A 2x2 hole is represented in self.data by either two consecutive gray squares within a dict
-        # or by two gray squares in consecutive dicts whose indices are consecutive, and the index
-        # corresponding to the upper row is odd.
+        """Returns all 2x2 areas of gray squares as coordinates of their top left corner. Assumes a valid board."""
+        # In self.data, a hole corresponds to two gray squares that are immediately diagonal of each other.
         corners = []
         current_row = 0
         unvisited = [list(filter(lambda k: self.data[i][k] == GRAY, r.keys())) for i, r in enumerate(self.data)]
         while unvisited:
-            for x in list(filter(lambda n: n % 2 == 0, unvisited[0])):
-                other = x - 1 if x - 1 in unvisited[0] else x + 1
-                corners.append((x, current_row))
-                unvisited[0].remove(x)
-                unvisited[0].remove(other)
             while unvisited[0]:
-                # Elements of unvisited[0] are guaranteed to be odd at this point
-                x = unvisited[0].pop(0)
-                other = x - 1 if x - 1 in unvisited[1] else x + 1
-                corners.append((x, current_row))
-                unvisited[1].remove(other)
-            unvisited.pop(0)
-            current_row += 1
+                if unvisited[0][0] - 1 in unvisited[1]:
+                    corners.append((unvisited[0][0] - 1, current_row))
+                    unvisited[1].remove(unvisited[0][0] - 1)
+                else:
+                    corners.append((unvisited[0][0], current_row))
+                    unvisited[1].remove(unvisited[0][0] + 1)
+                unvisited[0].pop(0)
         return corners
 
     def fill_holes(self, holes: List[Tuple[int, int]]):
-        """Fills holes at indices returned by ``get_holes()`` with a random arrangement of dominoes."""
+        """Fills holes at coordinates returned by ``get_holes()`` with a random arrangement of dominoes."""
         pass
 
     def next_board(self) -> 'Board':
