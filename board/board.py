@@ -21,13 +21,12 @@ class Board:
     """
     Data representation of an Aztec Diamond board.
 
-    The board, stored in the ``data`` field, is as a list of dicts, where each dict represents two rows and each element
-    of a dict is the X coordinate of a valid black square mapped to a tuple of the square's color and arrow direction.
-    The first dict corresponds to Y coordinates 0 and 1. Y increases downwards.
+    The board, stored in the ``data`` field, is as a list of dicts, where each dict represents a row. Only black
+    squares are stored. The keys represent the absolute X coordinate of their square.
 
     Every square has a parity of either black or white. A square is black if the sum of its X and Y coordinates is even;
-    in other words, there is a checkerboard pattern starting with a black square at (0, 0). White squares are not stored
-    to avoid redundancy, but it's valid to use the coordinates of a white square anywhere that coordinates are expected.
+    in other words, there is a checkerboard pattern starting with a black square at (0, 0).
+    It's valid to use the coordinates of a white square anywhere that coordinates are expected.
 
     Every square has a color, which it shares with the other part of its domino if it has one.
     If the coordinates are outside of the board, the reported color is NO_COLOR.
@@ -43,26 +42,15 @@ class Board:
             if height == 2:
                 self.data = [{0: GRAY, 1: GRAY}, {0: GRAY, 1: GRAY}]
             else:
-                rows = []
                 offset = height // 2 - 1
-                while len(rows) <= height // 2:
-                    rows.append(OrderedDict())
-                    for i in range(offset, height - offset + (3 if len(rows) > height // 4 else 1)):
-                        if len(rows) < height // 4 + 1:
-                            rows[-1][i] = BLUE
-                        elif len(rows) > height // 4 + 1:
-                            rows[-1][i] = GREEN
-                        elif i % 2 == 0:
-                            rows[-1][i] = BLUE
-                        else:
-                            rows[-1][i] = GREEN
-                    if len(rows) < height // 4:
-                        offset -= 2
-                    elif len(rows) == height // 4:
+                for i in range(height):
+                    self.data.append(OrderedDict())
+                    for j in range(offset, height - offset, 1):
+                        self.data[i][j] = GREEN if i < height / 2 and height % 2 == 0 else BLUE
+                    if len(self.data) < height / 2:
                         offset -= 1
-                    else:
-                        offset += 2
-                self.data = rows
+                    elif len(self.data) > height / 2:
+                        offset += 1
 
     @staticmethod
     def get_square_parity(x, y) -> SquareParity:
@@ -70,8 +58,8 @@ class Board:
 
     def get_square_color(self, x, y) -> SquareColor:
         if self.get_square_parity(x, y) == BLACK:
-            if 0 <= y // 2 < len(self.data) and x in self.data[y // 2]:
-                return self.data[y // 2][x]
+            if 0 <= y < len(self.data) and x in self.data[y]:
+                return self.data[y][x]
             return NO_COLOR
         else:
             neighbor = self.get_square_neighbor(x, y)
