@@ -43,6 +43,7 @@ class Board:
         if height % 2 != 0 or height <= 1:
             raise ValueError('The height of an Aztec Diamond board must be an even number greater than 1.')
         self.data: Dict[int, Dict[int, SquareColor]]
+        self.polarity = 1
         if init_data:
             self.data = self.generate_data(height, fill_strategy=HORIZONTAL)
         else:
@@ -83,7 +84,7 @@ class Board:
                 return self.get_square_color(*neighbor)
             return GRAY
         else:
-            orientation = 1 if (len(self.data) - 1) % 4 == 0 else -1
+            orientation = 1 if len(self.data) % 4 == 0 else -1
             neighbor = self.get_square_neighbor(x, y)
             if neighbor:
                 return self.get_square_color(*neighbor)
@@ -101,16 +102,21 @@ class Board:
         if parity == BLACK:
             color = self.get_square_color(x, y)
             if color == RED:
-                return x, y - 1
+                return x, y - self.polarity
             elif color == YELLOW:
-                return x, y + 1
+                return x, y + self.polarity
             elif color == GREEN:
-                return x - 1, y
+                return x - self.polarity, y
             elif color == BLUE:
-                return x + 1, y
+                return x + self.polarity, y
             return None
         else:
-            for x2, y2, target_color in ((x, y - 1, YELLOW), (x, y + 1, RED), (x - 1, y, BLUE), (x + 1, y, GREEN)):
+            for x2, y2, target_color in (
+                (x, y - self.polarity, YELLOW),
+                (x, y + self.polarity, RED),
+                (x - self.polarity, y, BLUE),
+                (x + self.polarity, y, GREEN)
+            ):
                 if self.get_square_color(x2, y2) == target_color:
                     return x2, y2
             return None
@@ -143,3 +149,20 @@ class Board:
         """Performs necessary movement and deletion of dominoes according to current data and changes the board size.
         ``fill_holes()`` will not be called by this method."""
         new_data = self.generate_data(len(self.data) + 2)
+        color_delta = {
+            RED: (1, 0),
+            YELLOW: (-1, 0),
+            BLUE: (0, -1),
+            GREEN: (0, 1),
+            GRAY: (0, 0)
+        }
+        for y, row in self.data.items():
+            for x, color in row.items():
+                new_x = x + color_delta[color][0]
+                new_y = y + color_delta[color][1]
+                if new_data[new_y][new_x] == GRAY:
+                    new_data[new_y][new_x] = color
+                else:
+                    new_data[new_y][new_x] = GRAY
+        self.data = new_data
+        self.polarity *= -1
