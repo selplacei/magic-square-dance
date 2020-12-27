@@ -78,7 +78,7 @@ class MainWindow(QWidget):
             lambda: self.renderer.skip_ahead(self.skip_ahead_spinbox.value())
         )
         self.skip_ahead_button.clicked.connect(
-            lambda: self.skip_ahead_progressbar.setMaximum(self.skip_ahead_spinbox.value() - 1)
+            lambda: self.skip_ahead_progressbar.setMaximum(max(self.skip_ahead_spinbox.value(), 2) - 1)
         )
         self.renderer.skipaheadProgress.connect(self.skip_ahead_progressbar.setValue)
         self.renderer.skipaheadComplete.connect(self.skip_ahead_progressbar.reset)
