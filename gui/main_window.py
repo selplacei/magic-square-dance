@@ -1,7 +1,7 @@
 from PySide2.QtWidgets import (
     QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QSizePolicy, QCheckBox, QLabel, QSpinBox, QProgressBar
 )
-from PySide2.QtCore import Qt
+from PySide2.QtCore import Qt, Slot
 from .board_render import AztecDiamondRenderer
 
 
@@ -70,12 +70,16 @@ class MainWindow(QWidget):
         # Passing the function directly sets repaint to False
         self.advance_magic_button.clicked.connect(lambda: self.renderer.advance_magic())
         self.fill_holes_button.clicked.connect(self.renderer.fill_holes)
-        self.skip_ahead_button.clicked.connect(lambda: self.renderer.skip_ahead(self.skip_ahead_spinbox.value()))
+        self.skip_ahead_button.clicked.connect(self.disable_buttons)
+        self.skip_ahead_button.clicked.connect(
+            lambda: self.renderer.skip_ahead(self.skip_ahead_spinbox.value())
+        )
         self.skip_ahead_button.clicked.connect(
             lambda: self.skip_ahead_progressbar.setMaximum(self.skip_ahead_spinbox.value() - 1)
         )
         self.renderer.skipaheadProgress.connect(self.skip_ahead_progressbar.setValue)
         self.renderer.skipaheadComplete.connect(self.skip_ahead_progressbar.reset)
+        self.renderer.skipaheadComplete.connect(self.enable_buttons)
         self.advance_magic_button.clicked.connect(lambda: self.next_step_button.setEnabled(False))
         self.advance_magic_button.clicked.connect(lambda: self.advance_magic_button.setEnabled(False))
         self.advance_magic_button.clicked.connect(lambda: self.skip_ahead_button.setEnabled(False))
@@ -83,3 +87,13 @@ class MainWindow(QWidget):
         self.fill_holes_button.clicked.connect(lambda: self.advance_magic_button.setEnabled(True))
         self.fill_holes_button.clicked.connect(lambda: self.skip_ahead_button.setEnabled(True))
         self.renderer.boardChanged.connect(self.adjustSize())
+
+    @Slot()
+    def disable_buttons(self):
+        for button in self.skip_ahead_button, self.next_step_button, self.advance_magic_button, self.fill_holes_button:
+            button.setEnabled(False)
+
+    @Slot()
+    def enable_buttons(self):
+        for button in self.skip_ahead_button, self.next_step_button, self.advance_magic_button, self.fill_holes_button:
+            button.setEnabled(True)

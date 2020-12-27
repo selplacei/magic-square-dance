@@ -1,5 +1,6 @@
+from copy import deepcopy
 from PySide2.QtWidgets import QWidget, QSizePolicy, QOpenGLWidget
-from PySide2.QtCore import Qt, QRectF, QTimer, Signal, QSize, Slot, QPointF
+from PySide2.QtCore import Qt, QRectF, QTimer, Signal, QSize, Slot, QPointF, QThread, QObject
 from PySide2.QtGui import QPainter, QBrush, QPen, QColor
 
 import board
@@ -8,7 +9,7 @@ import board
 class AztecDiamondRenderer(QOpenGLWidget):
     HOLE_BORDER = QColor(210, 210, 210)
     DOMINO_BORDER = QColor(30, 30, 30)
-    ARROWS = QColor(140, 140, 140)
+    ARROWS = QColor(120, 120, 100)
 
     square_colors = {
         (board.BLACK, board.NO_COLOR): QColor(0x101010),
@@ -28,8 +29,27 @@ class AztecDiamondRenderer(QOpenGLWidget):
     skipaheadProgress = Signal(int)
     skipaheadComplete = Signal()
 
+    class _SkipAheadWorker(QObject):
+        progressed = Signal(int)
+        completed = Signal(board.Board)
+
+        def __init__(self, board, n, parent=None):
+            super().__init__(parent=parent)
+            self.board = board
+            self.n = n
+
+        @Slot()
+        def run(self):
+            for i in range(self.n):
+                self.board.advance_magic()
+                self.board.fill_holes(self.board.get_holes())
+                self.progressed.emit(i)
+            self.completed.emit(self.board)
+
     def __init__(self, parent=None):
         super().__init__(parent=parent)
+        self._worker = None
+        self._worker_thread = None
         self.board = board.Board(2)
         self.holes = []
         self.base_square_size = 500
@@ -54,11 +74,19 @@ class AztecDiamondRenderer(QOpenGLWidget):
             self.repaint()
 
     def skip_ahead(self, n):
-        for i in range(n):
-            self.board.advance_magic()
-            self.recalculate_holes()
-            self.board.fill_holes(self.holes)
-            self.skipaheadProgress.emit(i)
+        self._worker_thread = QThread(self)
+        self._worker = self._SkipAheadWorker(deepcopy(self.board), n)
+        self._worker_thread.started.connect(self._worker.run)
+        self._worker.progressed.connect(self.skipaheadProgress.emit)
+        self._worker.completed.connect(self._on_worker_complete)
+        self._worker.moveToThread(self._worker_thread)
+        self._worker_thread.start(QThread.LowPriority)
+
+    @Slot(board.Board)
+    def _on_worker_complete(self, board):
+        self.board = board
+        self._worker = None
+        self._worker_thread.quit()
         self.skipaheadComplete.emit()
         self.boardChanged.emit(self.minimumSize())
         self.repaint()
