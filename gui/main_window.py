@@ -63,7 +63,9 @@ class MainWindow(QWidget):
         self.hole_borders_toggle.stateChanged.connect(self.renderer.setHoleBordersEnabled)
         self.domino_borders_toggle.stateChanged.connect(self.renderer.setDominoBordersEnabled)
         self.checkerboard_toggle.stateChanged.connect(self.renderer.setCheckeboardEnabled)
-        self.next_step_button.clicked.connect(lambda: (self.renderer.advance_magic(), self.renderer.fill_holes()))
+        self.next_step_button.clicked.connect(
+            lambda: (self.renderer.advance_magic(repaint=False), self.renderer.fill_holes())
+        )
         self.advance_magic_button.clicked.connect(self.renderer.advance_magic)
         self.fill_holes_button.clicked.connect(self.renderer.fill_holes)
         self.skip_ahead_button.clicked.connect(lambda: self.renderer.skip_ahead(self.skip_ahead_spinbox.value()))

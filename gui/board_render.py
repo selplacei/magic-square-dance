@@ -46,10 +46,11 @@ class AztecDiamondRenderer(QWidget):
     def recalculate_holes(self):
         self.holes = self.board.get_holes()
 
-    def advance_magic(self):
+    def advance_magic(self, repaint=True):
         self.board.advance_magic()
         self.boardChanged.emit(self.minimumSize())
-        self.repaint()
+        if repaint:
+            self.repaint()
 
     def skip_ahead(self, n):
         for i in range(n):
