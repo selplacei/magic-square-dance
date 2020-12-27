@@ -67,7 +67,8 @@ class MainWindow(QWidget):
         self.next_step_button.clicked.connect(
             lambda: (self.renderer.advance_magic(repaint=False), self.renderer.fill_holes())
         )
-        self.advance_magic_button.clicked.connect(self.renderer.advance_magic)
+        # Passing the function directly sets repaint to False
+        self.advance_magic_button.clicked.connect(lambda: self.renderer.advance_magic())
         self.fill_holes_button.clicked.connect(self.renderer.fill_holes)
         self.skip_ahead_button.clicked.connect(lambda: self.renderer.skip_ahead(self.skip_ahead_spinbox.value()))
         self.skip_ahead_button.clicked.connect(
