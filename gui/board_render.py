@@ -75,7 +75,7 @@ class AztecDiamondRenderer(QOpenGLWidget):
 
     def skip_ahead(self, n):
         self._worker_thread = QThread(self)
-        self._worker = self._SkipAheadWorker(deepcopy(self.board), n)
+        self._worker = self._SkipAheadWorker(deepcopy(self.board), n - 1)
         self._worker_thread.started.connect(self._worker.run)
         self._worker.progressed.connect(self.skipaheadProgress.emit)
         self._worker.completed.connect(self._on_worker_complete)
@@ -87,8 +87,10 @@ class AztecDiamondRenderer(QOpenGLWidget):
         self.board = board
         self._worker = None
         self._worker_thread.quit()
+        self.advance_magic(repaint=False)
+        self.recalculate_holes()
+        self.fill_holes()
         self.skipaheadComplete.emit()
-        self.boardChanged.emit(self.minimumSize())
         self.repaint()
 
     def fill_holes(self):
@@ -118,7 +120,7 @@ class AztecDiamondRenderer(QOpenGLWidget):
                         square_size + 0.5, square_size + 0.5
                     ))
         if self.domino_borders_enabled:
-            painter.setPen(QPen(QBrush(self.DOMINO_BORDER), max(1, int(square_size / 30))))
+            painter.setPen(QPen(QBrush(self.DOMINO_BORDER), max(1, square_size / 20)))
             painter.setBrush(Qt.NoBrush)
             for y in range(-board_radius, board_radius):
                 for x in range(-board_radius, board_radius):
@@ -130,7 +132,7 @@ class AztecDiamondRenderer(QOpenGLWidget):
                         ))
         if self.hole_borders_enabled:
             painter.setBrush(Qt.NoBrush)
-            painter.setPen(QPen(QBrush(self.HOLE_BORDER), square_size / 10))
+            painter.setPen(QPen(QBrush(self.HOLE_BORDER), max(1, square_size / 10)))
             for x, y in self.holes:
                 painter.drawRect(QRectF(
                     x * square_size + offset_x, y * square_size + offset_y,

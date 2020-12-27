@@ -10,9 +10,10 @@ class MainWindow(QWidget):
         super().__init__(parent=parent)
         self.setWindowTitle('Magic Square Dance')
 
+        self.board_width_label = QLabel()
         self.hole_borders_toggle = QCheckBox('Show 2x2 hole borders')
         self.domino_borders_toggle = QCheckBox('Show domino borders')
-        self.arrows_toggle = QCheckBox('Show domino arrows')
+        self.arrows_toggle = QCheckBox('Show domino direction')
         self.checkerboard_toggle = QCheckBox('Show checkerboard pattern')
         self.skip_ahead_label = QLabel('Skip ahead by:')
         self.skip_ahead_spinbox = QSpinBox()
@@ -23,6 +24,7 @@ class MainWindow(QWidget):
         self.fill_holes_button = QPushButton('Re-fill holes\n(press as many\ntimes as you like)')
         self.renderer = AztecDiamondRenderer()
 
+        self.set_displayed_board_width(2)
         for checkbox in (
             self.hole_borders_toggle, self.arrows_toggle, self.checkerboard_toggle
         ):
@@ -38,6 +40,7 @@ class MainWindow(QWidget):
         skipahead_widget = QWidget()
         skipahead_layout = QHBoxLayout()
         layout.addWidget(self.renderer, Qt.AlignVCenter)
+        right_layout.addWidget(self.board_width_label)
         right_layout.addWidget(self.hole_borders_toggle)
         right_layout.addWidget(self.domino_borders_toggle)
         right_layout.addWidget(self.arrows_toggle)
@@ -87,6 +90,7 @@ class MainWindow(QWidget):
         self.fill_holes_button.clicked.connect(lambda: self.advance_magic_button.setEnabled(True))
         self.fill_holes_button.clicked.connect(lambda: self.skip_ahead_button.setEnabled(True))
         self.renderer.boardChanged.connect(self.adjustSize())
+        self.renderer.boardChanged.connect(lambda _: self.set_displayed_board_width(len(self.renderer.board.data)))
 
     @Slot()
     def disable_buttons(self):
@@ -97,3 +101,7 @@ class MainWindow(QWidget):
     def enable_buttons(self):
         for button in self.skip_ahead_button, self.next_step_button, self.advance_magic_button, self.fill_holes_button:
             button.setEnabled(True)
+
+    @Slot(int)
+    def set_displayed_board_width(self, n):
+        self.board_width_label.setText(f'Current board size: {n // 2} {"domino" if n == 2 else "dominoes"}')
