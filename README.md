@@ -8,8 +8,15 @@ I'm not a mathematician, just thought this would be a fun program to make.
 
 Install Python (make sure it's Python 3.8 or later)  
 Download this repository  
-Open a terminal (command prompt on Windows), go to the downloaded repository's directory (e.g. `cd ~/Downloads/magic-square-dance`) and run `pip install -r requirements.txt` (if you'd like to use a venv etc. you already know what you're doing)  
+Open a terminal (command prompt on Windows)  
+Go to the downloaded repository's directory (e.g. `cd ~/Downloads/magic-square-dance`)  
+Run `pip install -r requirements.txt` (if you'd like to use a venv etc. you already know what you're doing)  
 Launch `main.py` (if this opens a text editor, specify Python as the application)
+
+## Usage
+
+Assuming you've watched the video, it should be pretty straightforward - this program has a minimal feature set.  
+Note that because QWidget doesn't utilize the GPU, the program can lag when drawing new boards of big enough sizes. I'm currently looking into using OpenGL instead, which should fix the performance issues.
 
 ## License
 
