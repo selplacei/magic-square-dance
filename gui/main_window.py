@@ -9,6 +9,7 @@ class MainWindow(QWidget):
         self.setWindowTitle('Magic Square Dance')
 
         self.hole_borders_toggle = QCheckBox('Show 2x2 hole borders')
+        self.domino_borders_toggle = QCheckBox('Show domino borders')
         self.arrows_toggle = QCheckBox('Show domino arrows')
         self.checkerboard_toggle = QCheckBox('Show checkerboard pattern')
         self.next_step_button = QPushButton('Next step\n(move then fill)')
@@ -16,7 +17,9 @@ class MainWindow(QWidget):
         self.fill_holes_button = QPushButton('Fill or re-roll holes')
         self.renderer = AztecDiamondRenderer()
 
-        for checkbox in self.hole_borders_toggle, self.arrows_toggle, self.checkerboard_toggle:
+        for checkbox in (
+            self.hole_borders_toggle, self.domino_borders_toggle, self.arrows_toggle, self.checkerboard_toggle
+        ):
             checkbox.setChecked(True)
         self.next_step_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.advance_magic_button.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -27,6 +30,7 @@ class MainWindow(QWidget):
         right_layout = QVBoxLayout()
         layout.addWidget(self.renderer, Qt.AlignVCenter)
         right_layout.addWidget(self.hole_borders_toggle)
+        right_layout.addWidget(self.domino_borders_toggle)
         right_layout.addWidget(self.arrows_toggle)
         right_layout.addWidget(self.checkerboard_toggle)
         right_layout.addWidget(self.next_step_button)
@@ -37,6 +41,7 @@ class MainWindow(QWidget):
         self.setLayout(layout)
 
         self.hole_borders_toggle.stateChanged.connect(self.renderer.setHoleBordersEnabled)
+        self.domino_borders_toggle.stateChanged.connect(self.renderer.setDominoBordersEnabled)
         self.next_step_button.clicked.connect(lambda: (self.renderer.advance_magic(), self.renderer.fill_holes()))
         self.advance_magic_button.clicked.connect(self.renderer.advance_magic)
         self.fill_holes_button.clicked.connect(self.renderer.fill_holes)

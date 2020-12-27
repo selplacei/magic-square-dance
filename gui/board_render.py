@@ -6,7 +6,8 @@ import board
 
 
 class AztecDiamondRenderer(QWidget):
-    BORDER = QColor(255, 255, 255)
+    HOLE_BORDER = QColor(255, 255, 255)
+    DOMINO_BORDER = QColor(30, 30, 30)
 
     square_colors = {
         (board.BLACK, board.NO_COLOR): QColor(0x101010),
@@ -30,6 +31,7 @@ class AztecDiamondRenderer(QWidget):
         self.holes = []
         self.base_square_size = 500
         self.hole_borders_enabled = True
+        self.domino_borders_enabled = True
         self.domino_arrows_enabled = True
         self.checkerboard_enabled = True
         self.setMinimumSize(self.base_square_size, self.base_square_size)
@@ -71,9 +73,20 @@ class AztecDiamondRenderer(QWidget):
                         x * square_size + offset_x, y * square_size + offset_y,
                         square_size, square_size
                     ))
+        if self.domino_borders_enabled:
+            painter.setPen(QPen(QBrush(self.DOMINO_BORDER), max(1, int(square_size / 20))))
+            painter.setBrush(Qt.NoBrush)
+            for y in range(-board_radius, board_radius):
+                for x in range(-board_radius, board_radius):
+                    if self.board.get_square_parity(x, y) == board.BLACK and (other := self.board.get_square_neighbor(x, y)):
+                        painter.drawRect(QRectF(
+                            min(x, other[0]) * square_size + offset_x, min(y, other[1]) * square_size + offset_y,
+                            max(other[0] - x + 1, x - other[0] + 1) * square_size,
+                            max(other[1] - y + 1, y - other[1] + 1) * square_size
+                        ))
         if self.hole_borders_enabled:
             painter.setBrush(Qt.NoBrush)
-            painter.setPen(QPen(QBrush(self.BORDER), square_size / 10))
+            painter.setPen(QPen(QBrush(self.HOLE_BORDER), square_size / 10))
             for x, y in self.holes:
                 painter.drawRect(QRectF(
                     x * square_size + offset_x, y * square_size + offset_y,
@@ -83,4 +96,9 @@ class AztecDiamondRenderer(QWidget):
     @Slot(bool)
     def setHoleBordersEnabled(self, value):
         self.hole_borders_enabled = value
+        self.repaint()
+
+    @Slot(bool)
+    def setDominoBordersEnabled(self, value):
+        self.domino_borders_enabled = value
         self.repaint()
