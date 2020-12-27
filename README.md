@@ -19,7 +19,7 @@ Launch `main.py` (if this opens a text editor, specify Python as the application
 ## Usage
 
 Assuming you've watched the video, it should be pretty straightforward - this program has a minimal feature set.  
-Note that because QWidget doesn't utilize the GPU, the program can lag when drawing new boards of big enough sizes. I'm currently looking into using OpenGL instead, which should fix the performance issues.
+Note that because QWidget doesn't utilize the GPU, the program can lag when drawing new boards of big enough sizes. I'm currently looking into using OpenGL instead, which should fix the performance issues. Nevertheless, it's way more performant than browser versions.
 
 ## License
 
