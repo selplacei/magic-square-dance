@@ -6,7 +6,7 @@ import board
 
 
 class AztecDiamondRenderer(QWidget):
-    BORDER = QColor(20, 20, 20)
+    BORDER = QColor(200, 80, 20)
 
     square_colors = {
         (board.BLACK, board.NO_COLOR): QColor(0x101010),
@@ -15,7 +15,7 @@ class AztecDiamondRenderer(QWidget):
     for color, value in {
         board.GRAY: (120, 120, 120),
         board.RED: (190, 90, 90),
-        board.YELLOW: (255, 255, 90),
+        board.YELLOW: (190, 190, 90),
         board.GREEN: (90, 190, 90),
         board.BLUE: (90, 90, 190),
     }.items():
@@ -27,9 +27,14 @@ class AztecDiamondRenderer(QWidget):
     def __init__(self, board_data=None, parent=None):
         super().__init__(parent=parent)
         self.board = board.Board(2)
+        self.holes = []
         self.square_size = 20
+        self.boardChanged.connect(self.recalculate_holes)
         self.adjust_minimum_size()
         self.boardChanged.emit(self.minimumSize())
+
+    def recalculate_holes(self):
+        self.holes = self.board.get_holes()
 
     def advance_magic(self):
         self.board.advance_magic()
@@ -59,3 +64,10 @@ class AztecDiamondRenderer(QWidget):
                     (x + board_radius) * self.square_size, (y + board_radius) * self.square_size,
                     self.square_size, self.square_size
                 ))
+        painter.setBrush(Qt.NoBrush)
+        painter.setPen(QPen(QBrush(self.BORDER), self.square_size / 10))
+        for x, y in self.holes:
+            painter.drawRect(QRectF(
+                (x + board_radius) * self.square_size, (y + board_radius) * self.square_size,
+                self.square_size * 2, self.square_size * 2
+            ))
