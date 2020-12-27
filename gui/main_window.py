@@ -24,7 +24,7 @@ class MainWindow(QWidget):
         self.renderer = AztecDiamondRenderer()
 
         for checkbox in (
-            self.hole_borders_toggle, self.domino_borders_toggle, self.arrows_toggle, self.checkerboard_toggle
+            self.hole_borders_toggle, self.arrows_toggle, self.checkerboard_toggle
         ):
             checkbox.setChecked(True)
         self.skip_ahead_label.setBuddy(self.skip_ahead_spinbox)

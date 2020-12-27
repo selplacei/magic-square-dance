@@ -54,7 +54,7 @@ class AztecDiamondRenderer(QOpenGLWidget):
         self.holes = []
         self.base_square_size = 500
         self.hole_borders_enabled = True
-        self.domino_borders_enabled = True
+        self.domino_borders_enabled = False
         self.domino_arrows_enabled = True
         self.checkerboard_enabled = True
         self.setMinimumSize(self.base_square_size, self.base_square_size)
@@ -118,7 +118,7 @@ class AztecDiamondRenderer(QOpenGLWidget):
                         square_size + 0.5, square_size + 0.5
                     ))
         if self.domino_borders_enabled:
-            painter.setPen(QPen(QBrush(self.DOMINO_BORDER), max(1, int(square_size / 20))))
+            painter.setPen(QPen(QBrush(self.DOMINO_BORDER), max(1, int(square_size / 30))))
             painter.setBrush(Qt.NoBrush)
             for y in range(-board_radius, board_radius):
                 for x in range(-board_radius, board_radius):
