@@ -49,6 +49,14 @@ class AztecDiamondRenderer(QWidget):
         self.boardChanged.emit(self.minimumSize())
         self.repaint()
 
+    def skip_ahead(self, n):
+        for _ in range(n):
+            self.board.advance_magic()
+            self.recalculate_holes()
+            self.board.fill_holes(self.holes)
+        self.boardChanged.emit(self.minimumSize())
+        self.repaint()
+
     def fill_holes(self):
         self.board.fill_holes(self.holes)
         self.repaint()
@@ -66,9 +74,9 @@ class AztecDiamondRenderer(QWidget):
         for y in range(-board_radius, board_radius):
             for x in range(-board_radius, board_radius):
                 if (color := self.board.get_square_color(x, y)) != board.NO_COLOR:
-                    painter.setBrush(QBrush(
-                        self.square_colors[self.board.get_square_parity(x, y), color]
-                    ))
+                    painter.setBrush(QBrush(self.square_colors[
+                        self.board.get_square_parity(x, y) if self.checkerboard_enabled else board.BLACK, color
+                    ]))
                     painter.drawRect(QRectF(
                         x * square_size + offset_x, y * square_size + offset_y,
                         square_size, square_size
@@ -101,4 +109,9 @@ class AztecDiamondRenderer(QWidget):
     @Slot(bool)
     def setDominoBordersEnabled(self, value):
         self.domino_borders_enabled = value
+        self.repaint()
+
+    @Slot(bool)
+    def setCheckeboardEnabled(self, value):
+        self.checkerboard_enabled = value
         self.repaint()
