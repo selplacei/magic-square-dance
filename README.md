@@ -2,6 +2,8 @@
 
 This program is a visual representation of the "Magic Square Dance" algorithm used to construct all tilings of an Aztec Diamond board, as described in this Mathologer video: https://www.youtube.com/watch?v=Yy7Q8IWNfHM
 
+![Screenshot](https://github.com/selplacei/magic-square-dance/blob/master/screenshot.jpg?raw=true)
+
 I'm not a mathematician, just thought this would be a fun program to make.
 
 ## How to run this program
