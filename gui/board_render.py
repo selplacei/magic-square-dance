@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QWidget, QSizePolicy
-from PySide2.QtCore import Qt, QRectF, QTimer, Signal, QSize, Slot
+from PySide2.QtCore import Qt, QRectF, QTimer, Signal, QSize, Slot, QPointF
 from PySide2.QtGui import QPainter, QBrush, QPen, QColor
 
 import board
@@ -8,6 +8,7 @@ import board
 class AztecDiamondRenderer(QWidget):
     HOLE_BORDER = QColor(255, 255, 255)
     DOMINO_BORDER = QColor(30, 30, 30)
+    ARROWS = QColor(140, 140, 140)
 
     square_colors = {
         (board.BLACK, board.NO_COLOR): QColor(0x101010),
@@ -105,6 +106,47 @@ class AztecDiamondRenderer(QWidget):
                     x * square_size + offset_x, y * square_size + offset_y,
                     square_size * 2, square_size * 2
                 ))
+        if self.domino_arrows_enabled:
+            painter.setBrush(QBrush(self.ARROWS))
+            painter.setPen(Qt.NoPen)
+            for y in range(-board_radius, board_radius):
+                for x in range(-board_radius, board_radius):
+                    if self.board.get_square_parity(x, y) == board.BLACK:
+                        color = self.board.get_square_color(x, y)
+                        radius = square_size / 6
+                        if color == board.BLUE:
+                            center_x = (self.board.polarity + 1) * square_size / 2 + x * square_size + offset_x
+                            center_y = y * square_size + square_size / 2 + offset_y
+                            painter.drawConvexPolygon([
+                                QPointF(center_x - radius, center_y + radius),
+                                QPointF(center_x, center_y - radius),
+                                QPointF(center_x + radius, center_y + radius)
+                            ])
+                        elif color == board.GREEN:
+                            center_x = (self.board.polarity * -1 + 1) * square_size / 2 + x * square_size + offset_x
+                            center_y = y * square_size + square_size / 2 + offset_y
+                            painter.drawConvexPolygon([
+                                QPointF(center_x - radius, center_y - radius),
+                                QPointF(center_x, center_y + radius),
+                                QPointF(center_x + radius, center_y - radius)
+                            ])
+                        elif color == board.YELLOW:
+                            center_y = (self.board.polarity + 1) * square_size / 2 + y * square_size + offset_y
+                            center_x = x * square_size + square_size / 2 + offset_x
+                            painter.drawConvexPolygon([
+                                QPointF(center_x + radius, center_y + radius),
+                                QPointF(center_x - radius, center_y),
+                                QPointF(center_x + radius, center_y - radius)
+                            ])
+                        elif color == board.RED:
+                            center_y = (self.board.polarity * -1 + 1) * square_size / 2 + y * square_size + offset_y
+                            center_x = x * square_size + square_size / 2 + offset_x
+                            painter.drawConvexPolygon([
+                                QPointF(center_x - radius, center_y - radius),
+                                QPointF(center_x + radius, center_y),
+                                QPointF(center_x - radius, center_y + radius)
+                            ])
+
 
     @Slot(bool)
     def setHoleBordersEnabled(self, value):
@@ -119,4 +161,9 @@ class AztecDiamondRenderer(QWidget):
     @Slot(bool)
     def setCheckeboardEnabled(self, value):
         self.checkerboard_enabled = value
+        self.repaint()
+
+    @Slot(bool)
+    def setDominoArrowsEnabled(self, value):
+        self.domino_arrows_enabled = value
         self.repaint()

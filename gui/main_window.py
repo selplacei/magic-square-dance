@@ -63,6 +63,7 @@ class MainWindow(QWidget):
         self.hole_borders_toggle.stateChanged.connect(self.renderer.setHoleBordersEnabled)
         self.domino_borders_toggle.stateChanged.connect(self.renderer.setDominoBordersEnabled)
         self.checkerboard_toggle.stateChanged.connect(self.renderer.setCheckeboardEnabled)
+        self.arrows_toggle.stateChanged.connect(self.renderer.setDominoArrowsEnabled)
         self.next_step_button.clicked.connect(
             lambda: (self.renderer.advance_magic(repaint=False), self.renderer.fill_holes())
         )
