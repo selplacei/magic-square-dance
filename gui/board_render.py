@@ -84,7 +84,7 @@ class AztecDiamondRenderer(QWidget):
                     ]))
                     painter.drawRect(QRectF(
                         x * square_size + offset_x, y * square_size + offset_y,
-                        square_size, square_size
+                        square_size + 0.5, square_size + 0.5
                     ))
         if self.domino_borders_enabled:
             painter.setPen(QPen(QBrush(self.DOMINO_BORDER), max(1, int(square_size / 20))))
