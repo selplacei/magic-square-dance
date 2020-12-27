@@ -19,8 +19,8 @@ class MainWindow(QWidget):
         self.skip_ahead_button = QPushButton('Go')
         self.skip_ahead_progressbar = QProgressBar()
         self.next_step_button = QPushButton('Next step\n(move then fill)')
-        self.advance_magic_button = QPushButton('Move dominoes\n(expand the board)')
-        self.fill_holes_button = QPushButton('Fill or re-roll holes\n(press as many\ntimes as you like)')
+        self.advance_magic_button = QPushButton('Move dominoes\n(and expand the board)')
+        self.fill_holes_button = QPushButton('Re-fill holes\n(press as many\ntimes as you like)')
         self.renderer = AztecDiamondRenderer()
 
         for checkbox in (
@@ -81,5 +81,5 @@ class MainWindow(QWidget):
         self.advance_magic_button.clicked.connect(lambda: self.skip_ahead_button.setEnabled(False))
         self.fill_holes_button.clicked.connect(lambda: self.next_step_button.setEnabled(True))
         self.fill_holes_button.clicked.connect(lambda: self.advance_magic_button.setEnabled(True))
-        self.fill_holes_button.clicked.connect(lambda: self.skip_ahead_button.setEnabled(False))
+        self.fill_holes_button.clicked.connect(lambda: self.skip_ahead_button.setEnabled(True))
         self.renderer.boardChanged.connect(self.adjustSize())
