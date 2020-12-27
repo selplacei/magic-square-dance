@@ -14,12 +14,19 @@ NO_COLOR = SquareColor(-1)
 GRAY = SquareColor(0)
 RED = SquareColor(1)
 YELLOW = SquareColor(2)
-GREEN = SquareColor(3)
-BLUE = SquareColor(4)
+GREEN = SquareColor(4)
+BLUE = SquareColor(8)
 
 ALL_GRAY = FillStrategy(0)
 HORIZONTAL = FillStrategy(1)
 VERTICAL = FillStrategy(2)
+
+COLOR_PAIRS = {
+    GREEN: BLUE,
+    BLUE: GREEN,
+    RED: YELLOW,
+    YELLOW: RED
+}
 
 
 class Board:
@@ -151,12 +158,20 @@ class Board:
             parity = self.get_square_parity(x, y)
             squares = ((x, y), (x + 1, y + 1)) if parity == BLACK else ((x + 1, y), (x, y + 1))
             arrangement = randint(0, 1)
-            if self.polarity == 1 and parity == BLACK or self.polarity == -1 and parity == WHITE:
-                self.data[squares[0][1]][squares[0][0]] = BLUE if arrangement else RED
-                self.data[squares[1][1]][squares[1][0]] = GREEN if arrangement else YELLOW
+            if arrangement:
+                if squares[0][1] < squares[1][1]:
+                    self.data[squares[0][1]][squares[0][0]] = BLUE
+                    self.data[squares[1][1]][squares[1][0]] = GREEN
+                else:
+                    self.data[squares[0][1]][squares[0][0]] = GREEN
+                    self.data[squares[1][1]][squares[1][0]] = BLUE
             else:
-                self.data[squares[0][1]][squares[0][0]] = GREEN if arrangement else YELLOW
-                self.data[squares[1][1]][squares[1][0]] = BLUE if arrangement else RED
+                if squares[0][0] < squares[1][0]:
+                    self.data[squares[0][1]][squares[0][0]] = YELLOW
+                    self.data[squares[1][1]][squares[1][0]] = RED
+                else:
+                    self.data[squares[0][1]][squares[0][0]] = RED
+                    self.data[squares[1][1]][squares[1][0]] = YELLOW
 
     def advance_magic(self):
         """Performs necessary movement and deletion of dominoes according to current data and changes the board size.
@@ -173,9 +188,10 @@ class Board:
             for x, color in row.items():
                 new_x = x + color_delta[color][0]
                 new_y = y + color_delta[color][1]
-                if new_data[new_y][new_x] == GRAY:
-                    new_data[new_y][new_x] = color
-                else:
+                if color != GRAY and self.get_square_color(new_x, new_y) == COLOR_PAIRS[color]:
                     new_data[new_y][new_x] = GRAY
+                    self.data[new_y][new_x] = GRAY
+                else:
+                    new_data[new_y][new_x] = color
         self.data = new_data
         self.polarity *= -1
