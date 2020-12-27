@@ -6,7 +6,7 @@ import board
 
 
 class AztecDiamondRenderer(QWidget):
-    HOLE_BORDER = QColor(255, 255, 255)
+    HOLE_BORDER = QColor(210, 210, 210)
     DOMINO_BORDER = QColor(30, 30, 30)
     ARROWS = QColor(140, 140, 140)
 
@@ -146,7 +146,6 @@ class AztecDiamondRenderer(QWidget):
                                 QPointF(center_x + radius, center_y),
                                 QPointF(center_x - radius, center_y + radius)
                             ])
-
 
     @Slot(bool)
     def setHoleBordersEnabled(self, value):
