@@ -1,4 +1,4 @@
-from PySide2.QtWidgets import QWidget
+from PySide2.QtWidgets import QWidget, QSizePolicy
 from PySide2.QtCore import Qt, QRectF, QTimer, Signal, QSize
 from PySide2.QtGui import QPainter, QBrush, QPen, QColor
 
@@ -6,7 +6,7 @@ import board
 
 
 class AztecDiamondRenderer(QWidget):
-    BORDER = QColor(200, 80, 20)
+    BORDER = QColor(255, 255, 255)
 
     square_colors = {
         (board.BLACK, board.NO_COLOR): QColor(0x101010),
@@ -19,18 +19,21 @@ class AztecDiamondRenderer(QWidget):
         board.GREEN: (90, 190, 90),
         board.BLUE: (90, 90, 190),
     }.items():
-        square_colors[board.BLACK, color] = QColor(*map(lambda n: max(0, n - 20), value))
-        square_colors[board.WHITE, color] = QColor(*map(lambda n: min(255, n + 20), value))
+        square_colors[board.BLACK, color] = QColor(*map(lambda n: max(0, n - 10), value))
+        square_colors[board.WHITE, color] = QColor(*map(lambda n: min(255, n + 10), value))
 
     boardChanged = Signal(QSize)
 
-    def __init__(self, board_data=None, parent=None):
+    def __init__(self, parent=None):
         super().__init__(parent=parent)
         self.board = board.Board(2)
         self.holes = []
-        self.square_size = 20
+        self.base_square_size = 500
+        self.setMinimumSize(self.base_square_size, self.base_square_size)
+        policy = self.sizePolicy()
+        policy.setHeightForWidth(True)
+        self.setSizePolicy(policy)
         self.boardChanged.connect(self.recalculate_holes)
-        self.adjust_minimum_size()
         self.boardChanged.emit(self.minimumSize())
 
     def recalculate_holes(self):
@@ -38,7 +41,6 @@ class AztecDiamondRenderer(QWidget):
 
     def advance_magic(self):
         self.board.advance_magic()
-        self.adjust_minimum_size()
         self.boardChanged.emit(self.minimumSize())
         self.repaint()
 
@@ -46,29 +48,30 @@ class AztecDiamondRenderer(QWidget):
         self.board.fill_holes(self.holes)
         self.repaint()
 
-    def adjust_minimum_size(self):
-        board_radius = len(self.board.data) // 2
-        self.setMinimumSize(board_radius * 2 * self.square_size, board_radius * 2 * self.square_size)
-
     def paintEvent(self, event):
         if not self.board:
             return
+        self.base_square_size = min(self.size().width(), self.size().height())
         painter = QPainter(self)
         painter.setPen(Qt.NoPen)
         board_radius = len(self.board.data) // 2
+        square_size = self.base_square_size / board_radius / 2
+        offset_x = self.size().width() // 2
+        offset_y = self.size().height() // 2
         for y in range(-board_radius, board_radius):
             for x in range(-board_radius, board_radius):
-                painter.setBrush(QBrush(
-                    self.square_colors[self.board.get_square_parity(x, y), self.board.get_square_color(x, y)]
-                ))
-                painter.drawRect(QRectF(
-                    (x + board_radius) * self.square_size, (y + board_radius) * self.square_size,
-                    self.square_size, self.square_size
-                ))
+                if (color := self.board.get_square_color(x, y)) != board.NO_COLOR:
+                    painter.setBrush(QBrush(
+                        self.square_colors[self.board.get_square_parity(x, y), color]
+                    ))
+                    painter.drawRect(QRectF(
+                        x * square_size + offset_x, y * square_size + offset_y,
+                        square_size, square_size
+                    ))
         painter.setBrush(Qt.NoBrush)
-        painter.setPen(QPen(QBrush(self.BORDER), self.square_size / 10))
+        painter.setPen(QPen(QBrush(self.BORDER), square_size / 10))
         for x, y in self.holes:
             painter.drawRect(QRectF(
-                (x + board_radius) * self.square_size, (y + board_radius) * self.square_size,
-                self.square_size * 2, self.square_size * 2
+                x * square_size + offset_x, y * square_size + offset_y,
+                square_size * 2, square_size * 2
             ))
