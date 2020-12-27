@@ -1,6 +1,6 @@
 from collections import OrderedDict
-from math import ceil, floor
 from typing import Dict, List, NewType, Optional, Tuple
+from random import randint
 
 
 SquareParity = NewType('SquareParity', int)
@@ -145,8 +145,18 @@ class Board:
         return corners
 
     def fill_holes(self, holes: List[Tuple[int, int]]):
-        """Fills holes at coordinates returned by ``get_holes()`` with a random arrangement of dominoes."""
-        pass
+        """Fills holes at coordinates returned by ``get_holes()`` with a random arrangement of dominoes.
+        If there are dominoes at given coordinates already, they're overwritten."""
+        for x, y in holes:
+            parity = self.get_square_parity(x, y)
+            squares = ((x, y), (x + 1, y + 1)) if parity == BLACK else ((x + 1, y), (x, y + 1))
+            arrangement = randint(0, 1)
+            if self.polarity == 1 and parity == BLACK or self.polarity == -1 and parity == WHITE:
+                self.data[squares[0][1]][squares[0][0]] = BLUE if arrangement else RED
+                self.data[squares[1][1]][squares[1][0]] = GREEN if arrangement else YELLOW
+            else:
+                self.data[squares[0][1]][squares[0][0]] = GREEN if arrangement else YELLOW
+                self.data[squares[1][1]][squares[1][0]] = BLUE if arrangement else RED
 
     def advance_magic(self):
         """Performs necessary movement and deletion of dominoes according to current data and changes the board size.

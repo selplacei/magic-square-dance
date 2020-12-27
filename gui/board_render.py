@@ -42,6 +42,11 @@ class AztecDiamondRenderer(QWidget):
         self.boardChanged.emit(self.minimumSize())
         self.repaint()
 
+    def fill_holes(self):
+        print(self.holes)
+        self.board.fill_holes(self.holes)
+        self.repaint()
+
     def adjust_minimum_size(self):
         board_radius = len(self.board.data) // 2
         self.setMinimumSize(board_radius * 2 * self.square_size, board_radius * 2 * self.square_size)
