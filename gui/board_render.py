@@ -24,6 +24,8 @@ class AztecDiamondRenderer(QWidget):
         square_colors[board.WHITE, color] = QColor(*map(lambda n: min(255, n + 10), value))
 
     boardChanged = Signal(QSize)
+    skipaheadProgress = Signal(int)
+    skipaheadComplete = Signal()
 
     def __init__(self, parent=None):
         super().__init__(parent=parent)
@@ -50,10 +52,12 @@ class AztecDiamondRenderer(QWidget):
         self.repaint()
 
     def skip_ahead(self, n):
-        for _ in range(n):
+        for i in range(n):
             self.board.advance_magic()
             self.recalculate_holes()
             self.board.fill_holes(self.holes)
+            self.skipaheadProgress.emit(i)
+        self.skipaheadComplete.emit()
         self.boardChanged.emit(self.minimumSize())
         self.repaint()
 

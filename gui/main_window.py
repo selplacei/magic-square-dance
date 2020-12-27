@@ -1,4 +1,6 @@
-from PySide2.QtWidgets import QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QSizePolicy, QCheckBox, QLabel, QSpinBox
+from PySide2.QtWidgets import (
+    QWidget, QPushButton, QHBoxLayout, QVBoxLayout, QSizePolicy, QCheckBox, QLabel, QSpinBox, QProgressBar
+)
 from PySide2.QtCore import Qt
 from .board_render import AztecDiamondRenderer
 
@@ -15,6 +17,7 @@ class MainWindow(QWidget):
         self.skip_ahead_label = QLabel('Skip ahead by:')
         self.skip_ahead_spinbox = QSpinBox()
         self.skip_ahead_button = QPushButton('Go')
+        self.skip_ahead_progressbar = QProgressBar()
         self.next_step_button = QPushButton('Next step\n(move then fill)')
         self.advance_magic_button = QPushButton('Move dominoes\n(expand the board)')
         self.fill_holes_button = QPushButton('Fill or re-roll holes\n(press as many\ntimes as you like)')
@@ -39,11 +42,17 @@ class MainWindow(QWidget):
         right_layout.addWidget(self.domino_borders_toggle)
         right_layout.addWidget(self.arrows_toggle)
         right_layout.addWidget(self.checkerboard_toggle)
+        skipahead_layout.setContentsMargins(0, 0, 0, 0)
         skipahead_layout.addWidget(self.skip_ahead_label)
         skipahead_layout.addWidget(self.skip_ahead_spinbox)
         skipahead_layout.addWidget(self.skip_ahead_button)
         skipahead_widget.setLayout(skipahead_layout)
-        right_layout.addWidget(skipahead_widget)
+        skipahead_wrapper = QWidget()
+        skipahead_wrapper.setLayout(QVBoxLayout())
+        skipahead_wrapper.layout().setContentsMargins(0, 0, 0, 0)
+        skipahead_wrapper.layout().addWidget(skipahead_widget)
+        skipahead_wrapper.layout().addWidget(self.skip_ahead_progressbar)
+        right_layout.addWidget(skipahead_wrapper)
         right_layout.addWidget(self.next_step_button)
         right_layout.addWidget(self.advance_magic_button)
         right_layout.addWidget(self.fill_holes_button)
@@ -58,6 +67,11 @@ class MainWindow(QWidget):
         self.advance_magic_button.clicked.connect(self.renderer.advance_magic)
         self.fill_holes_button.clicked.connect(self.renderer.fill_holes)
         self.skip_ahead_button.clicked.connect(lambda: self.renderer.skip_ahead(self.skip_ahead_spinbox.value()))
+        self.skip_ahead_button.clicked.connect(
+            lambda: self.skip_ahead_progressbar.setMaximum(self.skip_ahead_spinbox.value() - 1)
+        )
+        self.renderer.skipaheadProgress.connect(self.skip_ahead_progressbar.setValue)
+        self.renderer.skipaheadComplete.connect(self.skip_ahead_progressbar.reset)
         self.advance_magic_button.clicked.connect(lambda: self.next_step_button.setEnabled(False))
         self.advance_magic_button.clicked.connect(lambda: self.advance_magic_button.setEnabled(False))
         self.advance_magic_button.clicked.connect(lambda: self.skip_ahead_button.setEnabled(False))
