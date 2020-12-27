@@ -1,11 +1,11 @@
-from PySide2.QtWidgets import QWidget, QSizePolicy
+from PySide2.QtWidgets import QWidget, QSizePolicy, QOpenGLWidget
 from PySide2.QtCore import Qt, QRectF, QTimer, Signal, QSize, Slot, QPointF
 from PySide2.QtGui import QPainter, QBrush, QPen, QColor
 
 import board
 
 
-class AztecDiamondRenderer(QWidget):
+class AztecDiamondRenderer(QOpenGLWidget):
     HOLE_BORDER = QColor(210, 210, 210)
     DOMINO_BORDER = QColor(30, 30, 30)
     ARROWS = QColor(140, 140, 140)
@@ -73,6 +73,8 @@ class AztecDiamondRenderer(QWidget):
         self.base_square_size = min(self.size().width(), self.size().height())
         painter = QPainter(self)
         painter.setPen(Qt.NoPen)
+        painter.setBrush(self.palette().color(self.backgroundRole()))
+        painter.drawRect(self.rect())
         board_radius = len(self.board.data) // 2
         square_size = self.base_square_size / board_radius / 2
         offset_x = self.size().width() // 2

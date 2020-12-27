@@ -1,6 +1,6 @@
 from collections import OrderedDict
 from typing import Dict, List, NewType, Optional, Tuple
-from random import randint
+from random import getrandbits
 
 
 SquareParity = NewType('SquareParity', int)
@@ -82,10 +82,10 @@ class Board:
 
     def get_square_color(self, x, y) -> SquareColor:
         if self.get_square_parity(x, y) == BLACK:
-            radius = len(self.data) // 2
-            if -radius <= y < radius and x in self.data[y]:
+            try:
                 return self.data[y][x]
-            return NO_COLOR
+            except KeyError:
+                return NO_COLOR
         elif len(self.data) == 2:
             neighbor = self.get_square_neighbor(x, y)
             if neighbor:
@@ -157,7 +157,7 @@ class Board:
         for x, y in holes:
             parity = self.get_square_parity(x, y)
             squares = ((x, y), (x + 1, y + 1)) if parity == BLACK else ((x + 1, y), (x, y + 1))
-            arrangement = randint(0, 1)
+            arrangement = getrandbits(1)
             if arrangement:
                 if squares[0][1] < squares[1][1]:
                     self.data[squares[0][1]][squares[0][0]] = BLUE
@@ -176,7 +176,7 @@ class Board:
     def advance_magic(self):
         """Performs necessary movement and deletion of dominoes according to current data and changes the board size.
         ``fill_holes()`` will not be called by this method."""
-        new_data = self.generate_data(len(self.data) + 2)
+        new_data = self.generate_data(len(self.data) + 2)  # O(n2)
         color_delta = {
             RED: (1, -self.polarity),
             YELLOW: (-1, self.polarity),
@@ -185,10 +185,10 @@ class Board:
             GRAY: (0, 0)
         }
         for y, row in self.data.items():
-            for x, color in row.items():
+            for x, color in row.items():  # O(n2)
                 new_x = x + color_delta[color][0]
                 new_y = y + color_delta[color][1]
-                if color != GRAY and self.get_square_color(new_x, new_y) == COLOR_PAIRS[color]:
+                if color != GRAY and self.data.get(new_y, {}).get(new_x) == COLOR_PAIRS[color]:
                     new_data[new_y][new_x] = GRAY
                     self.data[new_y][new_x] = GRAY
                 else:
