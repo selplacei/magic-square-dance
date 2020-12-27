@@ -1,5 +1,5 @@
 from PySide2.QtWidgets import QWidget, QSizePolicy
-from PySide2.QtCore import Qt, QRectF, QTimer, Signal, QSize
+from PySide2.QtCore import Qt, QRectF, QTimer, Signal, QSize, Slot
 from PySide2.QtGui import QPainter, QBrush, QPen, QColor
 
 import board
@@ -29,6 +29,9 @@ class AztecDiamondRenderer(QWidget):
         self.board = board.Board(2)
         self.holes = []
         self.base_square_size = 500
+        self.hole_borders_enabled = True
+        self.domino_arrows_enabled = True
+        self.checkerboard_enabled = True
         self.setMinimumSize(self.base_square_size, self.base_square_size)
         policy = self.sizePolicy()
         policy.setHeightForWidth(True)
@@ -68,10 +71,16 @@ class AztecDiamondRenderer(QWidget):
                         x * square_size + offset_x, y * square_size + offset_y,
                         square_size, square_size
                     ))
-        painter.setBrush(Qt.NoBrush)
-        painter.setPen(QPen(QBrush(self.BORDER), square_size / 10))
-        for x, y in self.holes:
-            painter.drawRect(QRectF(
-                x * square_size + offset_x, y * square_size + offset_y,
-                square_size * 2, square_size * 2
-            ))
+        if self.hole_borders_enabled:
+            painter.setBrush(Qt.NoBrush)
+            painter.setPen(QPen(QBrush(self.BORDER), square_size / 10))
+            for x, y in self.holes:
+                painter.drawRect(QRectF(
+                    x * square_size + offset_x, y * square_size + offset_y,
+                    square_size * 2, square_size * 2
+                ))
+
+    @Slot(bool)
+    def setHoleBordersEnabled(self, value):
+        self.hole_borders_enabled = value
+        self.repaint()
